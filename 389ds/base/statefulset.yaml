@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: ds389
+spec:
+  replicas: 1
+  serviceName: ds389
+  volumeClaimTemplates:
+    - metadata:
+        name: ds389-data
+      spec:
+        accessModes: [ 'ReadWriteOnce' ]
+        resources:
+          requests:
+            storage: 5Gi
+  template:
+    spec:
+      serviceAccountName: ds389
+      containers:
+        - name: 389ds
+          image: 389ds:latest
+          securityContext: {}
+          envFrom:
+            - secretRef:
+                name: ds389
+          ports:
+            - { containerPort: 3389, name: ldap, protocol: TCP }
+            - { containerPort: 3636, name: ldaps, protocol: TCP }
+          livenessProbe:
+            initialDelaySeconds: 30
+            tcpSocket:
+              port: ldap
+          readinessProbe:
+            initialDelaySeconds: 30
+            tcpSocket:
+              port: ldap
+          volumeMounts:
+            - name: ds389-data
+              mountPath: /data

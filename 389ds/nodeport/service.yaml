@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: ds389-nodeport
+spec:
+  type: NodePort
+  ports:
+    - appProtocol: ldap
+      name: ldap
+      port: 389
+      nodePort: 30389
+      targetPort: 3389
+    - appProtocol: ldaps
+      name: ldaps
+      port: 636
+      nodePort: 30636
+      targetPort: 3636
