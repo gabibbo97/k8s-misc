@@ -8,12 +8,12 @@ resources:
 
 commonLabels:
   app.kubernetes.io/name: 389ds
-  app.kubernetes.io/version: '1.4'
+  app.kubernetes.io/version: 'fedora33'
 
 images:
   - name: 389ds:latest
-    newName: 389ds/dirsrv
-    newTag: '1.4'
+    newName: ghcr.io/gabibbo97/389ds
+    newTag: fedora33
 
 secretGenerator:
   - name: ds389

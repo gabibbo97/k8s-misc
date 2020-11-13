@@ -1,0 +1,22 @@
+name: 389ds
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - '389ds/container/**'
+
+jobs:
+  build_container:
+    name: Build 389ds container image
+    runs-on: ubuntu-latest
+    steps:
+      - name: Repo checkout
+        uses: actions/checkout@v2
+      - name: Build and push
+        run: |
+          echo ${{ secrets.CR_TOKEN }} | docker login ghcr.io -u $GITHUB_ACTOR --password-stdin
+          docker pull ghcr.io/gabibbo97/389ds:fedora33 || true
+          docker build -t ghcr.io/gabibbo97/389ds:fedora33 -f 389ds/container/Dockerfile 389ds/container
+          docker push ghcr.io/gabibbo97/389ds:fedora33

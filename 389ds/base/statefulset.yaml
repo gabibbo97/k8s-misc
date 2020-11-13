@@ -19,6 +19,7 @@ spec:
       containers:
         - name: 389ds
           image: 389ds:latest
+          imagePullPolicy: Always
           securityContext: {}
           envFrom:
             - secretRef:
