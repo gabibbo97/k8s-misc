@@ -16,6 +16,7 @@ spec:
   template:
     spec:
       serviceAccountName: ds389
+      terminationGracePeriodSeconds: 300
       containers:
         - name: 389ds
           image: 389ds:latest
@@ -29,12 +30,12 @@ spec:
             - { containerPort: 3636, name: ldaps, protocol: TCP }
           livenessProbe:
             initialDelaySeconds: 30
-            tcpSocket:
-              port: ldap
+            exec:
+              command: [ '/usr/libexec/dirsrv/dscontainer', '-H' ]
           readinessProbe:
             initialDelaySeconds: 30
-            tcpSocket:
-              port: ldap
+            exec:
+              command: [ '/usr/libexec/dirsrv/dscontainer', '-H' ]
           volumeMounts:
             - name: ds389-data
               mountPath: /data
