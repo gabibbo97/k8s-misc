@@ -1,0 +1,51 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: init-389ds
+spec:
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: 389ds
+        app.kubernetes.io/component: init
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: init-backend
+        image: ghcr.io/gabibbo97/389ds:fedora33
+        command: [ '/bin/sh', '-ec' ]
+        args:
+          - |-
+            dsConf() {
+              dsconf ldap://$(SVC_NAME):3389 -D "$(DS_BIND_DN)" -w "$(DS_BIND_PW)" "$@"
+            }
+            # Wait for the connection
+            TRIALS=0
+            until dsConf backend suffix list; do
+              sleep 1
+              TRIALS=$(( TRIALS + 1 ))
+              if [ $TRIALS -gt 30 ]; then echo 'Giving up' && exit 1; fi
+            done
+            # Create backend
+            if ! dsConf backend suffix list --suffix | grep -Fwq "$(SUFFIX_NAME)"; then
+              TRIALS=0
+              until dsConf backend create --suffix "$(SUFFIX_NAME)" --be-name userroot --create-suffix; do
+                sleep 1
+                TRIALS=$(( TRIALS + 1 ))
+                if [ $TRIALS -gt 30 ]; then echo 'Giving up' && exit 1; fi
+              done
+            else
+              echo 'Backend already present'
+            fi
+        env:
+          - name: SUFFIX_NAME
+            value: dc=example,dc=com # Name of the suffix to create
+          - name: SVC_NAME
+            value: ds389-0.ds389.default.svc.cluster.local # DNS record for the 389ds server
+          - name: DS_BIND_DN
+            value: "cn=Directory Manager" # This is the directory manager password
+          - name: DS_BIND_PW
+            valueFrom:
+              secretKeyRef:
+                name: ds389-xxxxxxxxx # This is the secret containing the password
+                key: DS_DM_PASSWORD
